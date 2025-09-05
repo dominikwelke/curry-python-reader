@@ -85,7 +85,7 @@ def read(inputfilename='', plotdata = 1, verbosity = 2):
     filename = os.path.basename(filepath)
 
     try:
-        basename, extension = ".".join(filepath.split(".")[:-1]), filepath.split(".")[-1]  # BUG (cannot handle dots in paths) FIXED
+        basename, extension = filepath.rsplit(".", maxsplit=1)
     except:
         raise Exception("Unsupported file, choose a cdt or dat file")
 
@@ -167,8 +167,10 @@ def read(inputfilename='', plotdata = 1, verbosity = 2):
            text = contents[ixstart:ixstop].strip()
            if text == 'ASCII' or text == 'CHAN' :   # test for alphanumeric values
                a[i] = 1
-           elif text.replace('.','',1).isnumeric() :  # BUG (float not recognized) FIXED
+           try:
                a[i] = float(text)                   # assign if it was a number
+           except ValueError:
+               pass
     
     # derived variables.  numbers (1) (2) etc are the token numbers
     nSamples    = int(a[0]  + a[int(0 + nt / 2)])
@@ -180,7 +182,7 @@ def read(inputfilename='', plotdata = 1, verbosity = 2):
     nMultiplex  = int(a[6]  + a[int(6 + nt / 2)])
     fSampleTime =     a[7]  + a[int(7 + nt / 2)]
                     
-    if fFrequency == 0. or fSampleTime != 0.:  # BUG (order) FIXED
+    if fFrequency == 0 or fSampleTime != 0:
         fFrequency = 1000000 / fSampleTime
     
     datainfo = { "samples" : nSamples, "channels" : nChannels, "trials" : nTrials, "samplingfreq" : fFrequency }
@@ -426,7 +428,7 @@ def read(inputfilename='', plotdata = 1, verbosity = 2):
         tixstop = contents.find('REMARK_LIST END_LIST')
         
         if tixstart != -1 and tixstop != 1 :
-            annotations = contents[tixstart+1:tixstop].splitlines()  # BUG (does not read correct lines) FIXED
+            annotations = contents[tixstart+1:tixstop].splitlines()
 
         log.info('Found events')
 
